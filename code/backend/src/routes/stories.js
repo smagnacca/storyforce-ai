@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('./auth');
 const { FableClient } = require('../lib/fableClient');
+const { GeminiClient } = require('../lib/geminiClient');
 const { Pool } = require('pg');
 
 const pool = new Pool({
@@ -9,6 +10,7 @@ const pool = new Pool({
 });
 
 const fableClient = new FableClient();
+const geminiClient = new GeminiClient();
 
 // ============================================================================
 // GENERATE STORY (Core Business Logic - Fable LLM Integration)
@@ -160,11 +162,15 @@ router.get('/', verifyToken, async (req, res) => {
 });
 
 // ============================================================================
-// PRACTICE COACHING (Voice + Fable Analysis)
+// PRACTICE COACHING (Voice + Gemini Scoring)
 // ============================================================================
 router.post('/:storyId/practice', verifyToken, async (req, res) => {
   try {
     const { audioUrl, transcription } = req.body;
+
+    if (!transcription) {
+      return res.status(400).json({ error: 'Transcription required' });
+    }
 
     // Get story
     const storyResult = await pool.query(
@@ -177,9 +183,21 @@ router.post('/:storyId/practice', verifyToken, async (req, res) => {
     }
 
     const story = storyResult.rows[0].three_act_json;
+    const storyText = `${story.act1Hook}\n${story.act2Bridge}\n${story.act3Payoff}`;
 
-    // Analyze delivery with Fable
-    const analysis = await analyzePracticeDelivery(story, transcription);
+    // Score delivery using Gemini Voice AI
+    const scoreResult = await geminiClient.scoreDelivery(storyText, transcription);
+    const scores = scoreResult.scores || {};
+
+    // Calculate overall score
+    const overallScore =
+      (scores.paceScore || 7.5 +
+      scores.emotionalResonanceScore || 7 +
+      scores.clarityScore || 8 +
+      scores.credibilityScore || 7.5) / 4;
+
+    // Generate coaching feedback
+    const feedbackResult = await geminiClient.generateCoachingFeedback(scores, story);
 
     // Save practice attempt
     const practiceResult = await pool.query(
@@ -190,25 +208,27 @@ router.post('/:storyId/practice', verifyToken, async (req, res) => {
         req.params.storyId,
         audioUrl,
         transcription,
-        JSON.stringify(analysis),
-        analysis.overallScore,
+        JSON.stringify({ scores, feedback: feedbackResult.feedback }),
+        Math.round(overallScore * 10) / 10,
       ]
     );
 
     const attempt = practiceResult.rows[0];
 
-    // Update story final score
-    if (analysis.overallScore > 0) {
-      await pool.query(
-        'UPDATE stories SET final_delivery_score = $1 WHERE id = $2',
-        [analysis.overallScore, req.params.storyId]
-      );
-    }
+    // Update story final delivery score (moving average)
+    await pool.query(
+      `UPDATE stories
+       SET final_delivery_score = COALESCE(final_delivery_score * 0.5, 0) + $1 * 0.5
+       WHERE id = $2`,
+      [overallScore, req.params.storyId]
+    );
 
     res.status(201).json({
       attemptId: attempt.id,
       score: attempt.overall_score,
-      analysis,
+      scores,
+      feedback: feedbackResult.feedback,
+      nextSteps: feedbackResult.nextSteps,
     });
   } catch (err) {
     console.error('Practice error:', err);
