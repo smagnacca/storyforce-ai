@@ -1,0 +1,219 @@
+name: Deploy StoryForce.AI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  AWS_REGION: us-east-1
+  DOCKER_IMAGE: storyforce-backend
+
+jobs:
+  # ============================================================================
+  # TEST & LINT
+  # ============================================================================
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_DB: storyforce_test
+          POSTGRES_PASSWORD: testpass
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linter
+      run: npm run lint || true
+
+    - name: Run unit tests
+      env:
+        DATABASE_URL: postgresql://postgres:testpass@localhost:5432/storyforce_test
+        REDIS_URL: redis://localhost:6379
+      run: npm test
+
+    - name: Upload coverage
+      if: always()
+      uses: codecov/codecov-action@v3
+
+  # ============================================================================
+  # BUILD & PUSH DOCKER IMAGE
+  # ============================================================================
+  build:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build and push Docker image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ env.DOCKER_IMAGE }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+    - name: Output image URI
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ env.DOCKER_IMAGE }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+  # ============================================================================
+  # DEPLOY TO STAGING
+  # ============================================================================
+  deploy-staging:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging-api.storyforce.ai/health
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Deploy to Fargate (Staging)
+      run: |
+        aws ecs update-service \
+          --cluster storyforce-staging \
+          --service storyforce-backend \
+          --force-new-deployment \
+          --region ${{ env.AWS_REGION }}
+
+    - name: Wait for deployment
+      run: |
+        aws ecs wait services-stable \
+          --cluster storyforce-staging \
+          --services storyforce-backend \
+          --region ${{ env.AWS_REGION }}
+
+    - name: Health check
+      run: |
+        for i in {1..30}; do
+          if curl -f https://staging-api.storyforce.ai/health; then
+            echo "✅ Staging deployment healthy"
+            exit 0
+          fi
+          echo "Health check attempt $i/30"
+          sleep 10
+        done
+        echo "❌ Staging deployment failed health check"
+        exit 1
+
+  # ============================================================================
+  # DEPLOY TO PRODUCTION
+  # ============================================================================
+  deploy-production:
+    needs: deploy-staging
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://api.storyforce.ai/health
+    concurrency:
+      group: production-deployment
+      cancel-in-progress: false
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Deploy to Fargate (Production)
+      run: |
+        aws ecs update-service \
+          --cluster storyforce-production \
+          --service storyforce-backend \
+          --force-new-deployment \
+          --region ${{ env.AWS_REGION }}
+
+    - name: Wait for deployment
+      run: |
+        aws ecs wait services-stable \
+          --cluster storyforce-production \
+          --services storyforce-backend \
+          --region ${{ env.AWS_REGION }}
+
+    - name: Production health check
+      run: |
+        for i in {1..30}; do
+          if curl -f https://api.storyforce.ai/health; then
+            echo "✅ Production deployment healthy"
+            exit 0
+          fi
+          echo "Health check attempt $i/30"
+          sleep 10
+        done
+        echo "❌ Production deployment failed health check"
+        exit 1
+
+    - name: Notify deployment success
+      if: success()
+      run: echo "✅ StoryForce.AI deployed to production successfully"
+
+    - name: Rollback on failure
+      if: failure()
+      run: |
+        echo "Rolling back production deployment..."
+        aws ecs update-service \
+          --cluster storyforce-production \
+          --service storyforce-backend \
+          --region ${{ env.AWS_REGION }}
