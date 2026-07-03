@@ -19,6 +19,7 @@ output "rds_cluster_port" {
 }
 
 output "rds_database_name" {
+  sensitive = true
   description = "RDS database name"
   value       = aws_rds_cluster.main.database_name
 }

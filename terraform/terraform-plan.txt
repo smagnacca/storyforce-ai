@@ -1,0 +1,756 @@
+[0m[1mdata.aws_caller_identity.current: Reading...[0m[0m
+[0m[1mdata.aws_availability_zones.available: Reading...[0m[0m
+[0m[1mdata.aws_caller_identity.current: Read complete after 0s [id=199584041806][0m
+[0m[1mdata.aws_availability_zones.available: Read complete after 0s [id=us-east-1][0m
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  [32m+[0m create[0m
+
+Terraform planned the following actions, but then encountered a problem:
+
+[1m  # aws_db_subnet_group.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_db_subnet_group" "main" {
+      [32m+[0m[0m arn                     = (known after apply)
+      [32m+[0m[0m description             = "Managed by Terraform"
+      [32m+[0m[0m id                      = (known after apply)
+      [32m+[0m[0m name                    = "storyforce-db-subnet-group"
+      [32m+[0m[0m name_prefix             = (known after apply)
+      [32m+[0m[0m subnet_ids              = (known after apply)
+      [32m+[0m[0m supported_network_types = (known after apply)
+      [32m+[0m[0m tags                    = {
+          [32m+[0m[0m "Name" = "storyforce-db-subnet-group"
+        }
+      [32m+[0m[0m tags_all                = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-db-subnet-group"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+      [32m+[0m[0m vpc_id                  = (known after apply)
+    }
+
+[1m  # aws_elasticache_replication_group.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_elasticache_replication_group" "main" {
+      [32m+[0m[0m apply_immediately              = (known after apply)
+      [32m+[0m[0m arn                            = (known after apply)
+      [32m+[0m[0m at_rest_encryption_enabled     = "true"
+      [32m+[0m[0m auth_token                     = (sensitive value)
+      [32m+[0m[0m auth_token_update_strategy     = "ROTATE"
+      [32m+[0m[0m auto_minor_version_upgrade     = (known after apply)
+      [32m+[0m[0m automatic_failover_enabled     = true
+      [32m+[0m[0m cluster_enabled                = (known after apply)
+      [32m+[0m[0m cluster_mode                   = (known after apply)
+      [32m+[0m[0m configuration_endpoint_address = (known after apply)
+      [32m+[0m[0m data_tiering_enabled           = (known after apply)
+      [32m+[0m[0m description                    = "storyforce Redis replication group"
+      [32m+[0m[0m engine                         = "redis"
+      [32m+[0m[0m engine_version                 = "7.0"
+      [32m+[0m[0m engine_version_actual          = (known after apply)
+      [32m+[0m[0m global_replication_group_id    = (known after apply)
+      [32m+[0m[0m id                             = (known after apply)
+      [32m+[0m[0m ip_discovery                   = (known after apply)
+      [32m+[0m[0m maintenance_window             = (known after apply)
+      [32m+[0m[0m member_clusters                = (known after apply)
+      [32m+[0m[0m multi_az_enabled               = false
+      [32m+[0m[0m network_type                   = (known after apply)
+      [32m+[0m[0m node_type                      = "cache.t4g.micro"
+      [32m+[0m[0m num_cache_clusters             = 2
+      [32m+[0m[0m num_node_groups                = (known after apply)
+      [32m+[0m[0m parameter_group_name           = "default.redis7"
+      [32m+[0m[0m port                           = 6379
+      [32m+[0m[0m primary_endpoint_address       = (known after apply)
+      [32m+[0m[0m reader_endpoint_address        = (known after apply)
+      [32m+[0m[0m replicas_per_node_group        = (known after apply)
+      [32m+[0m[0m replication_group_id           = "storyforce-cache"
+      [32m+[0m[0m security_group_ids             = (known after apply)
+      [32m+[0m[0m security_group_names           = (known after apply)
+      [32m+[0m[0m snapshot_window                = (known after apply)
+      [32m+[0m[0m subnet_group_name              = "storyforce-cache-subnet-group"
+      [32m+[0m[0m tags                           = {
+          [32m+[0m[0m "Name" = "storyforce-redis"
+        }
+      [32m+[0m[0m tags_all                       = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-redis"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+      [32m+[0m[0m transit_encryption_enabled     = true
+      [32m+[0m[0m transit_encryption_mode        = (known after apply)
+    }
+
+[1m  # aws_elasticache_subnet_group.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_elasticache_subnet_group" "main" {
+      [32m+[0m[0m arn         = (known after apply)
+      [32m+[0m[0m description = "Managed by Terraform"
+      [32m+[0m[0m id          = (known after apply)
+      [32m+[0m[0m name        = "storyforce-cache-subnet-group"
+      [32m+[0m[0m subnet_ids  = (known after apply)
+      [32m+[0m[0m tags        = {
+          [32m+[0m[0m "Name" = "storyforce-cache-subnet-group"
+        }
+      [32m+[0m[0m tags_all    = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-cache-subnet-group"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+      [32m+[0m[0m vpc_id      = (known after apply)
+    }
+
+[1m  # aws_internet_gateway.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_internet_gateway" "main" {
+      [32m+[0m[0m arn      = (known after apply)
+      [32m+[0m[0m id       = (known after apply)
+      [32m+[0m[0m owner_id = (known after apply)
+      [32m+[0m[0m tags     = {
+          [32m+[0m[0m "Name" = "storyforce-igw"
+        }
+      [32m+[0m[0m tags_all = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-igw"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+      [32m+[0m[0m vpc_id   = (known after apply)
+    }
+
+[1m  # aws_rds_cluster.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_rds_cluster" "main" {
+      [32m+[0m[0m allocated_storage                     = (known after apply)
+      [32m+[0m[0m apply_immediately                     = (known after apply)
+      [32m+[0m[0m arn                                   = (known after apply)
+      [32m+[0m[0m availability_zones                    = (known after apply)
+      [32m+[0m[0m backup_retention_period               = 30
+      [32m+[0m[0m ca_certificate_identifier             = (known after apply)
+      [32m+[0m[0m ca_certificate_valid_till             = (known after apply)
+      [32m+[0m[0m cluster_identifier                    = "storyforce-cluster"
+      [32m+[0m[0m cluster_identifier_prefix             = (known after apply)
+      [32m+[0m[0m cluster_members                       = (known after apply)
+      [32m+[0m[0m cluster_resource_id                   = (known after apply)
+      [32m+[0m[0m cluster_scalability_type              = (known after apply)
+      [32m+[0m[0m copy_tags_to_snapshot                 = false
+      [32m+[0m[0m database_insights_mode                = (known after apply)
+      [32m+[0m[0m database_name                         = (sensitive value)
+      [32m+[0m[0m db_cluster_parameter_group_name       = (known after apply)
+      [32m+[0m[0m db_subnet_group_name                  = "storyforce-db-subnet-group"
+      [32m+[0m[0m db_system_id                          = (known after apply)
+      [32m+[0m[0m delete_automated_backups              = true
+      [32m+[0m[0m enable_global_write_forwarding        = false
+      [32m+[0m[0m enable_http_endpoint                  = false
+      [32m+[0m[0m enable_local_write_forwarding         = false
+      [32m+[0m[0m enabled_cloudwatch_logs_exports       = [
+          [32m+[0m[0m "postgresql",
+        ]
+      [32m+[0m[0m endpoint                              = (known after apply)
+      [32m+[0m[0m engine                                = "aurora-postgresql"
+      [32m+[0m[0m engine_lifecycle_support              = (known after apply)
+      [32m+[0m[0m engine_mode                           = "provisioned"
+      [32m+[0m[0m engine_version                        = "15.3"
+      [32m+[0m[0m engine_version_actual                 = (known after apply)
+      [32m+[0m[0m hosted_zone_id                        = (known after apply)
+      [32m+[0m[0m iam_roles                             = (known after apply)
+      [32m+[0m[0m id                                    = (known after apply)
+      [32m+[0m[0m kms_key_id                            = (known after apply)
+      [32m+[0m[0m master_password                       = (sensitive value)
+      [32m+[0m[0m master_password_wo                    = (write-only attribute)
+      [32m+[0m[0m master_user_secret                    = (known after apply)
+      [32m+[0m[0m master_user_secret_kms_key_id         = (known after apply)
+      [32m+[0m[0m master_username                       = (sensitive value)
+      [32m+[0m[0m monitoring_interval                   = (known after apply)
+      [32m+[0m[0m monitoring_role_arn                   = (known after apply)
+      [32m+[0m[0m network_type                          = (known after apply)
+      [32m+[0m[0m performance_insights_kms_key_id       = (known after apply)
+      [32m+[0m[0m performance_insights_retention_period = (known after apply)
+      [32m+[0m[0m port                                  = (known after apply)
+      [32m+[0m[0m preferred_backup_window               = (known after apply)
+      [32m+[0m[0m preferred_maintenance_window          = (known after apply)
+      [32m+[0m[0m reader_endpoint                       = (known after apply)
+      [32m+[0m[0m skip_final_snapshot                   = true
+      [32m+[0m[0m storage_encrypted                     = true
+      [32m+[0m[0m storage_type                          = (known after apply)
+      [32m+[0m[0m tags                                  = {
+          [32m+[0m[0m "Name" = "storyforce-cluster"
+        }
+      [32m+[0m[0m tags_all                              = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-cluster"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+      [32m+[0m[0m vpc_security_group_ids                = (known after apply)
+    }
+
+[1m  # aws_rds_cluster_instance.main[0][0m will be created
+[0m  [32m+[0m[0m resource "aws_rds_cluster_instance" "main" {
+      [32m+[0m[0m apply_immediately                     = (known after apply)
+      [32m+[0m[0m arn                                   = (known after apply)
+      [32m+[0m[0m auto_minor_version_upgrade            = true
+      [32m+[0m[0m availability_zone                     = (known after apply)
+      [32m+[0m[0m ca_cert_identifier                    = (known after apply)
+      [32m+[0m[0m cluster_identifier                    = (known after apply)
+      [32m+[0m[0m copy_tags_to_snapshot                 = false
+      [32m+[0m[0m db_parameter_group_name               = (known after apply)
+      [32m+[0m[0m db_subnet_group_name                  = (known after apply)
+      [32m+[0m[0m dbi_resource_id                       = (known after apply)
+      [32m+[0m[0m endpoint                              = (known after apply)
+      [32m+[0m[0m engine                                = "aurora-postgresql"
+      [32m+[0m[0m engine_version                        = "15.3"
+      [32m+[0m[0m engine_version_actual                 = (known after apply)
+      [32m+[0m[0m force_destroy                         = false
+      [32m+[0m[0m id                                    = (known after apply)
+      [32m+[0m[0m identifier                            = "storyforce-instance-1"
+      [32m+[0m[0m identifier_prefix                     = (known after apply)
+      [32m+[0m[0m instance_class                        = "db.t4g.small"
+      [32m+[0m[0m kms_key_id                            = (known after apply)
+      [32m+[0m[0m monitoring_interval                   = 0
+      [32m+[0m[0m monitoring_role_arn                   = (known after apply)
+      [32m+[0m[0m network_type                          = (known after apply)
+      [32m+[0m[0m performance_insights_enabled          = (known after apply)
+      [32m+[0m[0m performance_insights_kms_key_id       = (known after apply)
+      [32m+[0m[0m performance_insights_retention_period = (known after apply)
+      [32m+[0m[0m port                                  = (known after apply)
+      [32m+[0m[0m preferred_backup_window               = (known after apply)
+      [32m+[0m[0m preferred_maintenance_window          = (known after apply)
+      [32m+[0m[0m promotion_tier                        = 0
+      [32m+[0m[0m publicly_accessible                   = (known after apply)
+      [32m+[0m[0m storage_encrypted                     = (known after apply)
+      [32m+[0m[0m tags                                  = {
+          [32m+[0m[0m "Name" = "storyforce-instance-1"
+        }
+      [32m+[0m[0m tags_all                              = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-instance-1"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+      [32m+[0m[0m writer                                = (known after apply)
+    }
+
+[1m  # aws_rds_cluster_instance.main[1][0m will be created
+[0m  [32m+[0m[0m resource "aws_rds_cluster_instance" "main" {
+      [32m+[0m[0m apply_immediately                     = (known after apply)
+      [32m+[0m[0m arn                                   = (known after apply)
+      [32m+[0m[0m auto_minor_version_upgrade            = true
+      [32m+[0m[0m availability_zone                     = (known after apply)
+      [32m+[0m[0m ca_cert_identifier                    = (known after apply)
+      [32m+[0m[0m cluster_identifier                    = (known after apply)
+      [32m+[0m[0m copy_tags_to_snapshot                 = false
+      [32m+[0m[0m db_parameter_group_name               = (known after apply)
+      [32m+[0m[0m db_subnet_group_name                  = (known after apply)
+      [32m+[0m[0m dbi_resource_id                       = (known after apply)
+      [32m+[0m[0m endpoint                              = (known after apply)
+      [32m+[0m[0m engine                                = "aurora-postgresql"
+      [32m+[0m[0m engine_version                        = "15.3"
+      [32m+[0m[0m engine_version_actual                 = (known after apply)
+      [32m+[0m[0m force_destroy                         = false
+      [32m+[0m[0m id                                    = (known after apply)
+      [32m+[0m[0m identifier                            = "storyforce-instance-2"
+      [32m+[0m[0m identifier_prefix                     = (known after apply)
+      [32m+[0m[0m instance_class                        = "db.t4g.small"
+      [32m+[0m[0m kms_key_id                            = (known after apply)
+      [32m+[0m[0m monitoring_interval                   = 0
+      [32m+[0m[0m monitoring_role_arn                   = (known after apply)
+      [32m+[0m[0m network_type                          = (known after apply)
+      [32m+[0m[0m performance_insights_enabled          = (known after apply)
+      [32m+[0m[0m performance_insights_kms_key_id       = (known after apply)
+      [32m+[0m[0m performance_insights_retention_period = (known after apply)
+      [32m+[0m[0m port                                  = (known after apply)
+      [32m+[0m[0m preferred_backup_window               = (known after apply)
+      [32m+[0m[0m preferred_maintenance_window          = (known after apply)
+      [32m+[0m[0m promotion_tier                        = 0
+      [32m+[0m[0m publicly_accessible                   = (known after apply)
+      [32m+[0m[0m storage_encrypted                     = (known after apply)
+      [32m+[0m[0m tags                                  = {
+          [32m+[0m[0m "Name" = "storyforce-instance-2"
+        }
+      [32m+[0m[0m tags_all                              = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-instance-2"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+      [32m+[0m[0m writer                                = (known after apply)
+    }
+
+[1m  # aws_s3_bucket.audio_storage[0m will be created
+[0m  [32m+[0m[0m resource "aws_s3_bucket" "audio_storage" {
+      [32m+[0m[0m acceleration_status         = (known after apply)
+      [32m+[0m[0m acl                         = (known after apply)
+      [32m+[0m[0m arn                         = (known after apply)
+      [32m+[0m[0m bucket                      = "storyforce-audio-199584041806"
+      [32m+[0m[0m bucket_domain_name          = (known after apply)
+      [32m+[0m[0m bucket_prefix               = (known after apply)
+      [32m+[0m[0m bucket_regional_domain_name = (known after apply)
+      [32m+[0m[0m force_destroy               = false
+      [32m+[0m[0m hosted_zone_id              = (known after apply)
+      [32m+[0m[0m id                          = (known after apply)
+      [32m+[0m[0m object_lock_enabled         = (known after apply)
+      [32m+[0m[0m policy                      = (known after apply)
+      [32m+[0m[0m region                      = (known after apply)
+      [32m+[0m[0m request_payer               = (known after apply)
+      [32m+[0m[0m tags                        = {
+          [32m+[0m[0m "Name" = "storyforce-audio-storage"
+        }
+      [32m+[0m[0m tags_all                    = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-audio-storage"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+      [32m+[0m[0m website_domain              = (known after apply)
+      [32m+[0m[0m website_endpoint            = (known after apply)
+
+      [32m+[0m[0m cors_rule (known after apply)
+
+      [32m+[0m[0m grant (known after apply)
+
+      [32m+[0m[0m lifecycle_rule (known after apply)
+
+      [32m+[0m[0m logging (known after apply)
+
+      [32m+[0m[0m object_lock_configuration (known after apply)
+
+      [32m+[0m[0m replication_configuration (known after apply)
+
+      [32m+[0m[0m server_side_encryption_configuration (known after apply)
+
+      [32m+[0m[0m versioning (known after apply)
+
+      [32m+[0m[0m website (known after apply)
+    }
+
+[1m  # aws_s3_bucket_public_access_block.audio_storage[0m will be created
+[0m  [32m+[0m[0m resource "aws_s3_bucket_public_access_block" "audio_storage" {
+      [32m+[0m[0m block_public_acls       = true
+      [32m+[0m[0m block_public_policy     = true
+      [32m+[0m[0m bucket                  = (known after apply)
+      [32m+[0m[0m id                      = (known after apply)
+      [32m+[0m[0m ignore_public_acls      = true
+      [32m+[0m[0m restrict_public_buckets = true
+    }
+
+[1m  # aws_s3_bucket_server_side_encryption_configuration.audio_storage[0m will be created
+[0m  [32m+[0m[0m resource "aws_s3_bucket_server_side_encryption_configuration" "audio_storage" {
+      [32m+[0m[0m bucket = (known after apply)
+      [32m+[0m[0m id     = (known after apply)
+
+      [32m+[0m[0m rule {
+          [32m+[0m[0m apply_server_side_encryption_by_default {
+              [32m+[0m[0m sse_algorithm     = "AES256"
+                [90m# (1 unchanged attribute hidden)[0m[0m
+            }
+        }
+    }
+
+[1m  # aws_s3_bucket_versioning.audio_storage[0m will be created
+[0m  [32m+[0m[0m resource "aws_s3_bucket_versioning" "audio_storage" {
+      [32m+[0m[0m bucket = (known after apply)
+      [32m+[0m[0m id     = (known after apply)
+
+      [32m+[0m[0m versioning_configuration {
+          [32m+[0m[0m mfa_delete = (known after apply)
+          [32m+[0m[0m status     = "Enabled"
+        }
+    }
+
+[1m  # aws_security_group.alb[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group" "alb" {
+      [32m+[0m[0m arn                    = (known after apply)
+      [32m+[0m[0m description            = "Security group for ALB"
+      [32m+[0m[0m egress                 = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m from_port        = 0
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "-1"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 0
+                [90m# (1 unchanged attribute hidden)[0m[0m
+            },
+        ]
+      [32m+[0m[0m id                     = (known after apply)
+      [32m+[0m[0m ingress                = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m from_port        = 443
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 443
+                [90m# (1 unchanged attribute hidden)[0m[0m
+            },
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m from_port        = 80
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 80
+                [90m# (1 unchanged attribute hidden)[0m[0m
+            },
+        ]
+      [32m+[0m[0m name                   = "storyforce-alb-sg"
+      [32m+[0m[0m name_prefix            = (known after apply)
+      [32m+[0m[0m owner_id               = (known after apply)
+      [32m+[0m[0m revoke_rules_on_delete = false
+      [32m+[0m[0m tags                   = {
+          [32m+[0m[0m "Name" = "storyforce-alb-sg"
+        }
+      [32m+[0m[0m tags_all               = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-alb-sg"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+      [32m+[0m[0m vpc_id                 = (known after apply)
+    }
+
+[1m  # aws_security_group.ecs[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group" "ecs" {
+      [32m+[0m[0m arn                    = (known after apply)
+      [32m+[0m[0m description            = "Security group for ECS tasks"
+      [32m+[0m[0m egress                 = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m from_port        = 0
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "-1"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 0
+                [90m# (1 unchanged attribute hidden)[0m[0m
+            },
+        ]
+      [32m+[0m[0m id                     = (known after apply)
+      [32m+[0m[0m ingress                = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = []
+              [32m+[0m[0m from_port        = 3000
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = (known after apply)
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 3000
+                [90m# (1 unchanged attribute hidden)[0m[0m
+            },
+        ]
+      [32m+[0m[0m name                   = "storyforce-ecs-sg"
+      [32m+[0m[0m name_prefix            = (known after apply)
+      [32m+[0m[0m owner_id               = (known after apply)
+      [32m+[0m[0m revoke_rules_on_delete = false
+      [32m+[0m[0m tags                   = {
+          [32m+[0m[0m "Name" = "storyforce-ecs-sg"
+        }
+      [32m+[0m[0m tags_all               = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-ecs-sg"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+      [32m+[0m[0m vpc_id                 = (known after apply)
+    }
+
+[1m  # aws_security_group.rds[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group" "rds" {
+      [32m+[0m[0m arn                    = (known after apply)
+      [32m+[0m[0m description            = "Security group for RDS database"
+      [32m+[0m[0m egress                 = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m from_port        = 0
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "-1"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 0
+                [90m# (1 unchanged attribute hidden)[0m[0m
+            },
+        ]
+      [32m+[0m[0m id                     = (known after apply)
+      [32m+[0m[0m ingress                = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = []
+              [32m+[0m[0m from_port        = 5432
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = (known after apply)
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 5432
+                [90m# (1 unchanged attribute hidden)[0m[0m
+            },
+        ]
+      [32m+[0m[0m name                   = "storyforce-rds-sg"
+      [32m+[0m[0m name_prefix            = (known after apply)
+      [32m+[0m[0m owner_id               = (known after apply)
+      [32m+[0m[0m revoke_rules_on_delete = false
+      [32m+[0m[0m tags                   = {
+          [32m+[0m[0m "Name" = "storyforce-rds-sg"
+        }
+      [32m+[0m[0m tags_all               = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-rds-sg"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+      [32m+[0m[0m vpc_id                 = (known after apply)
+    }
+
+[1m  # aws_security_group.redis[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group" "redis" {
+      [32m+[0m[0m arn                    = (known after apply)
+      [32m+[0m[0m description            = "Security group for ElastiCache Redis"
+      [32m+[0m[0m egress                 = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m from_port        = 0
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "-1"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 0
+                [90m# (1 unchanged attribute hidden)[0m[0m
+            },
+        ]
+      [32m+[0m[0m id                     = (known after apply)
+      [32m+[0m[0m ingress                = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = []
+              [32m+[0m[0m from_port        = 6379
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = (known after apply)
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 6379
+                [90m# (1 unchanged attribute hidden)[0m[0m
+            },
+        ]
+      [32m+[0m[0m name                   = "storyforce-redis-sg"
+      [32m+[0m[0m name_prefix            = (known after apply)
+      [32m+[0m[0m owner_id               = (known after apply)
+      [32m+[0m[0m revoke_rules_on_delete = false
+      [32m+[0m[0m tags                   = {
+          [32m+[0m[0m "Name" = "storyforce-redis-sg"
+        }
+      [32m+[0m[0m tags_all               = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-redis-sg"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+      [32m+[0m[0m vpc_id                 = (known after apply)
+    }
+
+[1m  # aws_subnet.private[0][0m will be created
+[0m  [32m+[0m[0m resource "aws_subnet" "private" {
+      [32m+[0m[0m arn                                            = (known after apply)
+      [32m+[0m[0m assign_ipv6_address_on_creation                = false
+      [32m+[0m[0m availability_zone                              = "us-east-1a"
+      [32m+[0m[0m availability_zone_id                           = (known after apply)
+      [32m+[0m[0m cidr_block                                     = "10.0.10.0/24"
+      [32m+[0m[0m enable_dns64                                   = false
+      [32m+[0m[0m enable_resource_name_dns_a_record_on_launch    = false
+      [32m+[0m[0m enable_resource_name_dns_aaaa_record_on_launch = false
+      [32m+[0m[0m id                                             = (known after apply)
+      [32m+[0m[0m ipv6_cidr_block_association_id                 = (known after apply)
+      [32m+[0m[0m ipv6_native                                    = false
+      [32m+[0m[0m map_public_ip_on_launch                        = false
+      [32m+[0m[0m owner_id                                       = (known after apply)
+      [32m+[0m[0m private_dns_hostname_type_on_launch            = (known after apply)
+      [32m+[0m[0m tags                                           = {
+          [32m+[0m[0m "Name" = "storyforce-private-1"
+        }
+      [32m+[0m[0m tags_all                                       = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-private-1"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+      [32m+[0m[0m vpc_id                                         = (known after apply)
+    }
+
+[1m  # aws_subnet.private[1][0m will be created
+[0m  [32m+[0m[0m resource "aws_subnet" "private" {
+      [32m+[0m[0m arn                                            = (known after apply)
+      [32m+[0m[0m assign_ipv6_address_on_creation                = false
+      [32m+[0m[0m availability_zone                              = "us-east-1b"
+      [32m+[0m[0m availability_zone_id                           = (known after apply)
+      [32m+[0m[0m cidr_block                                     = "10.0.11.0/24"
+      [32m+[0m[0m enable_dns64                                   = false
+      [32m+[0m[0m enable_resource_name_dns_a_record_on_launch    = false
+      [32m+[0m[0m enable_resource_name_dns_aaaa_record_on_launch = false
+      [32m+[0m[0m id                                             = (known after apply)
+      [32m+[0m[0m ipv6_cidr_block_association_id                 = (known after apply)
+      [32m+[0m[0m ipv6_native                                    = false
+      [32m+[0m[0m map_public_ip_on_launch                        = false
+      [32m+[0m[0m owner_id                                       = (known after apply)
+      [32m+[0m[0m private_dns_hostname_type_on_launch            = (known after apply)
+      [32m+[0m[0m tags                                           = {
+          [32m+[0m[0m "Name" = "storyforce-private-2"
+        }
+      [32m+[0m[0m tags_all                                       = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-private-2"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+      [32m+[0m[0m vpc_id                                         = (known after apply)
+    }
+
+[1m  # aws_subnet.public[0][0m will be created
+[0m  [32m+[0m[0m resource "aws_subnet" "public" {
+      [32m+[0m[0m arn                                            = (known after apply)
+      [32m+[0m[0m assign_ipv6_address_on_creation                = false
+      [32m+[0m[0m availability_zone                              = "us-east-1a"
+      [32m+[0m[0m availability_zone_id                           = (known after apply)
+      [32m+[0m[0m cidr_block                                     = "10.0.1.0/24"
+      [32m+[0m[0m enable_dns64                                   = false
+      [32m+[0m[0m enable_resource_name_dns_a_record_on_launch    = false
+      [32m+[0m[0m enable_resource_name_dns_aaaa_record_on_launch = false
+      [32m+[0m[0m id                                             = (known after apply)
+      [32m+[0m[0m ipv6_cidr_block_association_id                 = (known after apply)
+      [32m+[0m[0m ipv6_native                                    = false
+      [32m+[0m[0m map_public_ip_on_launch                        = true
+      [32m+[0m[0m owner_id                                       = (known after apply)
+      [32m+[0m[0m private_dns_hostname_type_on_launch            = (known after apply)
+      [32m+[0m[0m tags                                           = {
+          [32m+[0m[0m "Name" = "storyforce-public-1"
+        }
+      [32m+[0m[0m tags_all                                       = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-public-1"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+      [32m+[0m[0m vpc_id                                         = (known after apply)
+    }
+
+[1m  # aws_subnet.public[1][0m will be created
+[0m  [32m+[0m[0m resource "aws_subnet" "public" {
+      [32m+[0m[0m arn                                            = (known after apply)
+      [32m+[0m[0m assign_ipv6_address_on_creation                = false
+      [32m+[0m[0m availability_zone                              = "us-east-1b"
+      [32m+[0m[0m availability_zone_id                           = (known after apply)
+      [32m+[0m[0m cidr_block                                     = "10.0.2.0/24"
+      [32m+[0m[0m enable_dns64                                   = false
+      [32m+[0m[0m enable_resource_name_dns_a_record_on_launch    = false
+      [32m+[0m[0m enable_resource_name_dns_aaaa_record_on_launch = false
+      [32m+[0m[0m id                                             = (known after apply)
+      [32m+[0m[0m ipv6_cidr_block_association_id                 = (known after apply)
+      [32m+[0m[0m ipv6_native                                    = false
+      [32m+[0m[0m map_public_ip_on_launch                        = true
+      [32m+[0m[0m owner_id                                       = (known after apply)
+      [32m+[0m[0m private_dns_hostname_type_on_launch            = (known after apply)
+      [32m+[0m[0m tags                                           = {
+          [32m+[0m[0m "Name" = "storyforce-public-2"
+        }
+      [32m+[0m[0m tags_all                                       = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-public-2"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+      [32m+[0m[0m vpc_id                                         = (known after apply)
+    }
+
+[1m  # aws_vpc.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_vpc" "main" {
+      [32m+[0m[0m arn                                  = (known after apply)
+      [32m+[0m[0m cidr_block                           = "10.0.0.0/16"
+      [32m+[0m[0m default_network_acl_id               = (known after apply)
+      [32m+[0m[0m default_route_table_id               = (known after apply)
+      [32m+[0m[0m default_security_group_id            = (known after apply)
+      [32m+[0m[0m dhcp_options_id                      = (known after apply)
+      [32m+[0m[0m enable_dns_hostnames                 = true
+      [32m+[0m[0m enable_dns_support                   = true
+      [32m+[0m[0m enable_network_address_usage_metrics = (known after apply)
+      [32m+[0m[0m id                                   = (known after apply)
+      [32m+[0m[0m instance_tenancy                     = "default"
+      [32m+[0m[0m ipv6_association_id                  = (known after apply)
+      [32m+[0m[0m ipv6_cidr_block                      = (known after apply)
+      [32m+[0m[0m ipv6_cidr_block_network_border_group = (known after apply)
+      [32m+[0m[0m main_route_table_id                  = (known after apply)
+      [32m+[0m[0m owner_id                             = (known after apply)
+      [32m+[0m[0m tags                                 = {
+          [32m+[0m[0m "Name" = "storyforce-vpc"
+        }
+      [32m+[0m[0m tags_all                             = {
+          [32m+[0m[0m "Environment" = "dev"
+          [32m+[0m[0m "ManagedBy"   = "Terraform"
+          [32m+[0m[0m "Name"        = "storyforce-vpc"
+          [32m+[0m[0m "Project"     = "StoryForce"
+        }
+    }
+
+[1mPlan:[0m [0m20 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  [32m+[0m[0m alb_security_group_id       = (known after apply)
+  [32m+[0m[0m backend_env_vars            = (sensitive value)
+  [32m+[0m[0m deployment_checklist        = {
+      [32m+[0m[0m "1_rds_provisioned"         = true
+      [32m+[0m[0m "2_redis_provisioned"       = true
+      [32m+[0m[0m "3_s3_created"              = true
+      [32m+[0m[0m "4_vpc_configured"          = true
+      [32m+[0m[0m "5_security_groups_created" = true
+      [32m+[0m[0m "6_next_step"               = "Deploy backend container to ECS Fargate"
+    }
+  [32m+[0m[0m ecs_security_group_id       = (known after apply)
+  [32m+[0m[0m private_subnet_ids          = [
+      [32m+[0m[0m (known after apply),
+      [32m+[0m[0m (known after apply),
+    ]
+  [32m+[0m[0m public_subnet_ids           = [
+      [32m+[0m[0m (known after apply),
+      [32m+[0m[0m (known after apply),
+    ]
+  [32m+[0m[0m rds_cluster_endpoint        = (known after apply)
+  [32m+[0m[0m rds_cluster_port            = (known after apply)
+  [32m+[0m[0m rds_cluster_reader_endpoint = (known after apply)
+  [32m+[0m[0m rds_security_group_id       = (known after apply)
+  [32m+[0m[0m redis_port                  = 6379
+  [32m+[0m[0m redis_primary_endpoint      = (known after apply)
+  [32m+[0m[0m redis_security_group_id     = (known after apply)
+  [32m+[0m[0m s3_bucket_arn               = (known after apply)
+  [32m+[0m[0m s3_bucket_name              = "storyforce-audio-199584041806"
+  [32m+[0m[0m vpc_id                      = (known after apply)
+[31m╷[0m[0m
+[31m│[0m [0m[1m[31mError: [0m[0m[1mOutput refers to sensitive values[0m
+[31m│[0m [0m
+[31m│[0m [0m[0m  on outputs.tf line 21:
+[31m│[0m [0m  21: [4moutput "rds_database_name"[0m {[0m
+[31m│[0m [0m
+[31m│[0m [0mTo reduce the risk of accidentally exporting sensitive data that was
+[31m│[0m [0mintended to be only internal, Terraform requires that any root module
+[31m│[0m [0moutput containing sensitive data be explicitly marked as sensitive, to
+[31m│[0m [0mconfirm your intent.
+[31m│[0m [0m
+[31m│[0m [0mIf you do intend to export this data, annotate the output value as
+[31m│[0m [0msensitive by adding the following argument:
+[31m│[0m [0m    sensitive = true
+[31m╵[0m[0m
