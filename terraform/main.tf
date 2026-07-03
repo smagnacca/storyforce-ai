@@ -241,19 +241,20 @@ resource "aws_elasticache_subnet_group" "main" {
   }
 }
 
-resource "aws_elasticache_cluster" "main" {
-  cluster_id           = var.redis_cluster_id
-  engine               = "redis"
-  node_type            = var.redis_node_type
-  num_cache_nodes      = var.redis_num_nodes
-  parameter_group_name = "default.redis7"
-  engine_version       = "7.0"
-  port                 = 6379
-  subnet_group_name    = aws_elasticache_subnet_group.main.name
-  security_group_ids   = [aws_security_group.redis.id]
+resource "aws_elasticache_replication_group" "main" {
+  replication_group_id       = var.redis_cluster_id
+  description                = "${var.project_name} Redis replication group"
+  engine                     = "redis"
+  node_type                  = var.redis_node_type
+  num_cache_clusters         = var.redis_num_nodes
+  parameter_group_name       = "default.redis7"
+  engine_version             = "7.0"
+  port                       = 6379
+  subnet_group_name          = aws_elasticache_subnet_group.main.name
+  security_group_ids         = [aws_security_group.redis.id]
   at_rest_encryption_enabled = true
   transit_encryption_enabled = true
-  auth_token           = var.redis_auth_token
+  auth_token                 = var.redis_auth_token
   automatic_failover_enabled = true
 
   tags = {
@@ -309,34 +310,5 @@ data "aws_availability_zones" "available" {
 data "aws_caller_identity" "current" {}
 
 # ============================================================================
-# OUTPUTS
+# OUTPUTS — see outputs.tf (consolidated there to avoid duplicate definitions)
 # ============================================================================
-output "rds_cluster_endpoint" {
-  description = "RDS cluster writer endpoint"
-  value       = aws_rds_cluster.main.endpoint
-}
-
-output "rds_cluster_reader_endpoint" {
-  description = "RDS cluster reader endpoint"
-  value       = aws_rds_cluster.main.reader_endpoint
-}
-
-output "redis_endpoint" {
-  description = "Redis cluster endpoint"
-  value       = aws_elasticache_cluster.main.cache_nodes[0].address
-}
-
-output "s3_bucket_name" {
-  description = "S3 bucket for audio storage"
-  value       = aws_s3_bucket.audio_storage.bucket
-}
-
-output "vpc_id" {
-  description = "VPC ID"
-  value       = aws_vpc.main.id
-}
-
-output "private_subnet_ids" {
-  description = "Private subnet IDs"
-  value       = aws_subnet.private[*].id
-}

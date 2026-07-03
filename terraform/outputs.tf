@@ -25,13 +25,13 @@ output "rds_database_name" {
 
 output "redis_primary_endpoint" {
   description = "Redis cluster primary endpoint"
-  value       = aws_elasticache_cluster.main.cache_nodes[0].address
+  value       = aws_elasticache_replication_group.main.primary_endpoint_address
   sensitive   = false
 }
 
 output "redis_port" {
   description = "Redis cluster port"
-  value       = aws_elasticache_cluster.main.port
+  value       = aws_elasticache_replication_group.main.port
 }
 
 output "s3_bucket_name" {
@@ -83,10 +83,10 @@ output "redis_security_group_id" {
 output "backend_env_vars" {
   description = "Environment variables for backend deployment"
   value = {
-    DATABASE_URL = "postgresql://${var.db_username}:${var.db_password}@${aws_rds_cluster.main.endpoint}:${aws_rds_cluster.main.port}/${aws_rds_cluster.main.database_name}"
-    REDIS_URL    = "redis://:${var.redis_auth_token}@${aws_elasticache_cluster.main.cache_nodes[0].address}:${aws_elasticache_cluster.main.port}"
+    DATABASE_URL  = "postgresql://${var.db_username}:${var.db_password}@${aws_rds_cluster.main.endpoint}:${aws_rds_cluster.main.port}/${aws_rds_cluster.main.database_name}"
+    REDIS_URL     = "redis://:${var.redis_auth_token}@${aws_elasticache_replication_group.main.primary_endpoint_address}:${aws_elasticache_replication_group.main.port}"
     AWS_S3_BUCKET = aws_s3_bucket.audio_storage.bucket
-    AWS_REGION   = var.aws_region
+    AWS_REGION    = var.aws_region
   }
   sensitive = true
 }
@@ -95,11 +95,11 @@ output "backend_env_vars" {
 output "deployment_checklist" {
   description = "Pre-deployment checklist"
   value = {
-    "1_rds_provisioned" = true
-    "2_redis_provisioned" = true
-    "3_s3_created" = true
-    "4_vpc_configured" = true
+    "1_rds_provisioned"         = true
+    "2_redis_provisioned"       = true
+    "3_s3_created"              = true
+    "4_vpc_configured"          = true
     "5_security_groups_created" = true
-    "6_next_step" = "Deploy backend container to ECS Fargate"
+    "6_next_step"               = "Deploy backend container to ECS Fargate"
   }
 }
