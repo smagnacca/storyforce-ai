@@ -132,3 +132,41 @@ variable "additional_tags" {
   type        = map(string)
   default     = {}
 }
+
+# ============================================================================
+# FEATURE TOGGLES — Enable/Disable Subsystems
+# ============================================================================
+variable "enable_ecs" {
+  description = "Enable ECS Fargate deployment"
+  type        = bool
+  default     = true
+}
+
+variable "ecs_desired_count" {
+  description = "Desired number of ECS tasks (0 = disabled/no compute charges)"
+  type        = number
+  default     = 0
+
+  validation {
+    condition     = var.ecs_desired_count >= 0 && var.ecs_desired_count <= 10
+    error_message = "Desired count must be between 0 and 10."
+  }
+}
+
+variable "enable_rds" {
+  description = "Enable RDS Aurora PostgreSQL database"
+  type        = bool
+  default     = false
+}
+
+variable "enable_elasticache" {
+  description = "Enable ElastiCache Redis"
+  type        = bool
+  default     = false
+}
+
+variable "enable_alb" {
+  description = "Enable Application Load Balancer (requires ALB security group)"
+  type        = bool
+  default     = false
+}

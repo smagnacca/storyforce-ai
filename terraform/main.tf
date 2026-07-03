@@ -1,5 +1,6 @@
 # StoryForce.AI Infrastructure as Code
 # AWS provider configuration for multi-environment deployment
+# UPDATED: Added conditional variables to enable/disable subsystems
 
 terraform {
   required_version = ">= 1.0"
@@ -53,7 +54,7 @@ resource "aws_internet_gateway" "main" {
   }
 }
 
-# Public subnets for ALB
+# Public subnets for ALB and ECS (with public IP assignment)
 resource "aws_subnet" "public" {
   count                   = 2
   vpc_id                  = aws_vpc.main.id
@@ -66,7 +67,7 @@ resource "aws_subnet" "public" {
   }
 }
 
-# Private subnets for RDS and ECS
+# Private subnets for RDS and ElastiCache
 resource "aws_subnet" "private" {
   count             = 2
   vpc_id            = aws_vpc.main.id
@@ -78,10 +79,30 @@ resource "aws_subnet" "private" {
   }
 }
 
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block      = "0.0.0.0/0"
+    gateway_id      = aws_internet_gateway.main.id
+  }
+
+  tags = {
+    Name = "${var.project_name}-public-rt"
+  }
+}
+
+resource "aws_route_table_association" "public" {
+  count          = 2
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
+}
+
 # ============================================================================
 # SECURITY GROUPS
 # ============================================================================
 resource "aws_security_group" "alb" {
+  count       = var.enable_alb ? 1 : 0
   name        = "${var.project_name}-alb-sg"
   description = "Security group for ALB"
   vpc_id      = aws_vpc.main.id
@@ -113,15 +134,23 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_security_group" "ecs" {
+  count       = var.enable_ecs ? 1 : 0
   name        = "${var.project_name}-ecs-sg"
   description = "Security group for ECS tasks"
   vpc_id      = aws_vpc.main.id
 
   ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
     from_port       = 3000
     to_port         = 3000
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
+    security_groups = var.enable_alb ? [aws_security_group.alb[0].id] : []
   }
 
   egress {
@@ -137,6 +166,7 @@ resource "aws_security_group" "ecs" {
 }
 
 resource "aws_security_group" "rds" {
+  count       = var.enable_rds ? 1 : 0
   name        = "${var.project_name}-rds-sg"
   description = "Security group for RDS database"
   vpc_id      = aws_vpc.main.id
@@ -145,7 +175,7 @@ resource "aws_security_group" "rds" {
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [aws_security_group.ecs.id]
+    security_groups = var.enable_ecs ? [aws_security_group.ecs[0].id] : []
   }
 
   egress {
@@ -161,6 +191,7 @@ resource "aws_security_group" "rds" {
 }
 
 resource "aws_security_group" "redis" {
+  count       = var.enable_elasticache ? 1 : 0
   name        = "${var.project_name}-redis-sg"
   description = "Security group for ElastiCache Redis"
   vpc_id      = aws_vpc.main.id
@@ -169,7 +200,7 @@ resource "aws_security_group" "redis" {
     from_port       = 6379
     to_port         = 6379
     protocol        = "tcp"
-    security_groups = [aws_security_group.ecs.id]
+    security_groups = var.enable_ecs ? [aws_security_group.ecs[0].id] : []
   }
 
   egress {
@@ -185,9 +216,169 @@ resource "aws_security_group" "redis" {
 }
 
 # ============================================================================
+# ECR REPOSITORY (for ECS)
+# ============================================================================
+resource "aws_ecr_repository" "backend" {
+  count                = var.enable_ecs ? 1 : 0
+  name                 = "${var.project_name}-backend"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Name = "${var.project_name}-backend-repo"
+  }
+}
+
+# ============================================================================
+# ECS CLUSTER & TASK DEFINITION
+# ============================================================================
+resource "aws_ecs_cluster" "main" {
+  count = var.enable_ecs ? 1 : 0
+  name  = "${var.project_name}-cluster"
+
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
+  }
+
+  tags = {
+    Name = "${var.project_name}-cluster"
+  }
+}
+
+resource "aws_iam_role" "ecs_task_execution_role" {
+  count = var.enable_ecs ? 1 : 0
+  name  = "${var.project_name}-ecs-task-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name = "${var.project_name}-ecs-task-execution-role"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
+  count      = var.enable_ecs ? 1 : 0
+  role       = aws_iam_role.ecs_task_execution_role[0].name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role_policy" "ecs_task_execution_ecr_policy" {
+  count = var.enable_ecs ? 1 : 0
+  name  = "${var.project_name}-ecs-ecr-policy"
+  role  = aws_iam_role.ecs_task_execution_role[0].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchGetImage",
+          "ecr:GetDownloadUrlForLayer"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_cloudwatch_log_group" "ecs" {
+  count             = var.enable_ecs ? 1 : 0
+  name              = "/ecs/${var.project_name}"
+  retention_in_days = 7
+
+  tags = {
+    Name = "${var.project_name}-logs"
+  }
+}
+
+resource "aws_ecs_task_definition" "backend" {
+  count                    = var.enable_ecs ? 1 : 0
+  family                   = "${var.project_name}-backend"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role[0].arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "backend"
+      image     = "${aws_ecr_repository.backend[0].repository_url}:latest"
+      essential = true
+      portMappings = [
+        {
+          containerPort = 3000
+          hostPort      = 3000
+          protocol      = "tcp"
+        }
+      ]
+      environment = [
+        {
+          name  = "NODE_ENV"
+          value = "production"
+        },
+        {
+          name  = "PORT"
+          value = "3000"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.ecs[0].name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+    }
+  ])
+
+  tags = {
+    Name = "${var.project_name}-backend-task"
+  }
+}
+
+resource "aws_ecs_service" "backend" {
+  count           = var.enable_ecs ? 1 : 0
+  name            = "${var.project_name}-backend-service"
+  cluster         = aws_ecs_cluster.main[0].id
+  task_definition = aws_ecs_task_definition.backend[0].arn
+  desired_count   = var.ecs_desired_count
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = aws_subnet.public[*].id
+    security_groups  = [aws_security_group.ecs[0].id]
+    assign_public_ip = true
+  }
+
+  tags = {
+    Name = "${var.project_name}-backend-service"
+  }
+}
+
+# ============================================================================
 # RDS PostgreSQL DATABASE
 # ============================================================================
 resource "aws_db_subnet_group" "main" {
+  count      = var.enable_rds ? 1 : 0
   name       = "${var.project_name}-db-subnet-group"
   subnet_ids = aws_subnet.private[*].id
 
@@ -197,18 +388,18 @@ resource "aws_db_subnet_group" "main" {
 }
 
 resource "aws_rds_cluster" "main" {
-  cluster_identifier      = "${var.project_name}-cluster"
-  engine                  = "aurora-postgresql"
-  engine_version          = "15.17"
-  database_name           = var.db_name
-  master_username         = var.db_username
-  master_password         = var.db_password
-  db_subnet_group_name    = aws_db_subnet_group.main.name
-  vpc_security_group_ids  = [aws_security_group.rds.id]
-  storage_encrypted       = true
-  backup_retention_period = 30
-  skip_final_snapshot     = var.environment != "production"
-
+  count                       = var.enable_rds ? 1 : 0
+  cluster_identifier          = "${var.project_name}-cluster"
+  engine                      = "aurora-postgresql"
+  engine_version              = "15.17"
+  database_name               = var.db_name
+  master_username             = var.db_username
+  master_password             = var.db_password
+  db_subnet_group_name        = aws_db_subnet_group.main[0].name
+  vpc_security_group_ids      = [aws_security_group.rds[0].id]
+  storage_encrypted           = true
+  backup_retention_period     = 30
+  skip_final_snapshot         = var.environment != "production"
   enabled_cloudwatch_logs_exports = ["postgresql"]
 
   tags = {
@@ -217,12 +408,12 @@ resource "aws_rds_cluster" "main" {
 }
 
 resource "aws_rds_cluster_instance" "main" {
-  count              = var.db_instance_count
+  count              = var.enable_rds ? var.db_instance_count : 0
   identifier         = "${var.project_name}-instance-${count.index + 1}"
-  cluster_identifier = aws_rds_cluster.main.id
+  cluster_identifier = aws_rds_cluster.main[0].id
   instance_class     = var.db_instance_class
-  engine             = aws_rds_cluster.main.engine
-  engine_version     = aws_rds_cluster.main.engine_version
+  engine             = aws_rds_cluster.main[0].engine
+  engine_version     = aws_rds_cluster.main[0].engine_version
 
   tags = {
     Name = "${var.project_name}-instance-${count.index + 1}"
@@ -233,6 +424,7 @@ resource "aws_rds_cluster_instance" "main" {
 # ELASTICACHE REDIS
 # ============================================================================
 resource "aws_elasticache_subnet_group" "main" {
+  count      = var.enable_elasticache ? 1 : 0
   name       = "${var.project_name}-cache-subnet-group"
   subnet_ids = aws_subnet.private[*].id
 
@@ -242,6 +434,7 @@ resource "aws_elasticache_subnet_group" "main" {
 }
 
 resource "aws_elasticache_replication_group" "main" {
+  count                      = var.enable_elasticache ? 1 : 0
   replication_group_id       = var.redis_cluster_id
   description                = "${var.project_name} Redis replication group"
   engine                     = "redis"
@@ -250,8 +443,8 @@ resource "aws_elasticache_replication_group" "main" {
   parameter_group_name       = "default.redis7"
   engine_version             = "7.0"
   port                       = 6379
-  subnet_group_name          = aws_elasticache_subnet_group.main.name
-  security_group_ids         = [aws_security_group.redis.id]
+  subnet_group_name          = aws_elasticache_subnet_group.main[0].name
+  security_group_ids         = [aws_security_group.redis[0].id]
   at_rest_encryption_enabled = true
   transit_encryption_enabled = true
   auth_token                 = var.redis_auth_token
