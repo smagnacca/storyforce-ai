@@ -73,7 +73,7 @@ variable "db_password" {
 variable "db_instance_class" {
   description = "RDS instance type"
   type        = string
-  default     = "db.t4g.small"
+  default     = "db.r6g.large"
 }
 
 variable "db_instance_count" {
@@ -99,7 +99,7 @@ variable "redis_cluster_id" {
 variable "redis_node_type" {
   description = "Redis node type"
   type        = string
-  default     = "cache.t4g.micro"
+  default     = "cache.t3.micro"
 }
 
 variable "redis_num_nodes" {
