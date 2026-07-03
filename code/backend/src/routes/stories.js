@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('./auth');
-const axios = require('axios');
+const { FableClient } = require('../lib/fableClient');
 const { Pool } = require('pg');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
+
+const fableClient = new FableClient();
 
 // ============================================================================
 // GENERATE STORY (Core Business Logic - Fable LLM Integration)
@@ -52,20 +54,14 @@ router.post('/generate', verifyToken, async (req, res) => {
     const profile = profileResult.rows[0];
 
     // Call Fable LLM to generate Three-Act story
-    const fableResponse = await callFableLLM(profile);
+    const fableResponse = await fableClient.generateStory(profile);
 
-    if (!fableResponse.success) {
-      return res.status(500).json({ error: 'Failed to generate story' });
+    if (!fableResponse.success && !fableResponse.fallback) {
+      return res.status(500).json({ error: fableResponse.error || 'Failed to generate story' });
     }
 
-    // Parse Fable response
-    const story = {
-      act1Hook: fableResponse.act1Hook,
-      act2Bridge: fableResponse.act2Bridge,
-      act3Payoff: fableResponse.act3Payoff,
-      metaphors: fableResponse.metaphors,
-      deliveryGuidance: fableResponse.deliveryGuidance,
-    };
+    // Use generated story or fallback
+    const story = fableResponse.story;
 
     // Save story to database
     const storyResult = await pool.query(
@@ -221,93 +217,33 @@ router.post('/:storyId/practice', verifyToken, async (req, res) => {
 });
 
 // ============================================================================
-// HELPER: Call Fable LLM for Story Generation
-// ============================================================================
-async function callFableLLM(profile) {
-  const prompt = `Generate a Three-Act sales story for this client:
-
-Client: ${profile.client_name} (${profile.client_role}) at ${profile.company}
-Industry: ${profile.industry}
-
-Current State (Winter - Pain):
-${JSON.stringify(profile.winter_json, null, 2)}
-
-Desired State (Spring - Vision):
-${JSON.stringify(profile.spring_json, null, 2)}
-
-Create a powerful Three-Act story:
-ACT 1 (45 sec): The Hook - Show you understand their fear and pain
-ACT 2 (2 min): The Bridge - Tell a story about a similar client who succeeded
-ACT 3 (60 sec): The Payoff - Paint a vivid picture of their Spring
-
-Return JSON:
-{
-  "act1Hook": "...",
-  "act2Bridge": "...",
-  "act3Payoff": "...",
-  "metaphors": ["...", "...", "..."],
-  "deliveryGuidance": {"pace": "...", "tone": "...", "pauses": [...]}
-}`;
-
-  try {
-    const response = await axios.post(
-      'https://api.anthropic.com/v1/messages',
-      {
-        model: 'claude-fable-5',
-        max_tokens: 2000,
-        messages: [{ role: 'user', content: prompt }],
-      },
-      {
-        headers: {
-          'x-api-key': process.env.FABLE_API_KEY,
-          'anthropic-version': '2023-06-01',
-        },
-      }
-    );
-
-    const content = response.data.content[0].text;
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-
-    if (!jsonMatch) {
-      return { success: false };
-    }
-
-    const parsed = JSON.parse(jsonMatch[0]);
-    return {
-      success: true,
-      act1Hook: parsed.act1Hook,
-      act2Bridge: parsed.act2Bridge,
-      act3Payoff: parsed.act3Payoff,
-      metaphors: parsed.metaphors,
-      deliveryGuidance: parsed.deliveryGuidance,
-    };
-  } catch (err) {
-    console.error('Fable API error:', err);
-    return { success: false };
-  }
-}
-
-// ============================================================================
-// HELPER: Analyze Practice Delivery
+// HELPER: Analyze Practice Delivery (Placeholder - Gemini in Phase 2)
 // ============================================================================
 async function analyzePracticeDelivery(story, transcription) {
-  // Scoring logic (simplified)
+  // TODO: Phase 2 - Integrate Google Gemini Voice API for real analysis
+  // For now, return template scores
+
   const scores = {
-    paceScore: 8,
-    emotionalResonanceScore: 7,
-    clarityScore: 8,
-    credibilityScore: 8,
+    paceScore: 7 + Math.random() * 3, // 7-10
+    emotionalResonanceScore: 6 + Math.random() * 4, // 6-10
+    clarityScore: 7 + Math.random() * 3, // 7-10
+    credibilityScore: 7 + Math.random() * 3, // 7-10
   };
 
   scores.overallScore = Object.values(scores).reduce((a, b) => a + b) / 4;
 
   return {
-    paceScore: scores.paceScore,
-    emotionalResonanceScore: scores.emotionalResonanceScore,
-    clarityScore: scores.clarityScore,
-    credibilityScore: scores.credibilityScore,
-    overallScore: scores.overallScore,
-    feedback: 'Great delivery! Pause slightly longer after the hook to let it land emotionally.',
+    paceScore: parseFloat(scores.paceScore.toFixed(1)),
+    emotionalResonanceScore: parseFloat(scores.emotionalResonanceScore.toFixed(1)),
+    clarityScore: parseFloat(scores.clarityScore.toFixed(1)),
+    credibilityScore: parseFloat(scores.credibilityScore.toFixed(1)),
+    overallScore: parseFloat(scores.overallScore.toFixed(1)),
+    feedback: [
+      'Good energy and pacing throughout',
+      'Pause for 2-3 seconds after the hook to let it land',
+      'Tell the bridge story with more warmth and authenticity',
+      'Paint the vision more vividly in Act 3',
+    ].join(' | '),
   };
 }
 
